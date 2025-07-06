@@ -5,8 +5,9 @@ numpy
 python-box
 pyYAML
 tqdm
-ensure==1.0.2
+typeguard
 joblib
 types-pyYAML
 setuptools
+gdown
 -e .
