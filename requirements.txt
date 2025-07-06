@@ -1,0 +1,12 @@
+pandas
+dvc
+mlflow
+numpy
+python-box
+pyYAML
+tqdm
+ensure==1.0.2
+joblib
+types-pyYAML
+setuptools
+-e .
