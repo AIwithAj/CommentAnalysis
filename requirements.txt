@@ -1,13 +1,14 @@
-pandas
+-e .
 dvc
+evidently
+gdown
+joblib
 mlflow
 numpy
+pandas
 python-box
 pyYAML
+setuptools
 tqdm
 typeguard
-joblib
 types-pyYAML
-setuptools
-gdown
--e .

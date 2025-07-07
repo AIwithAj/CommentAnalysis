@@ -2,7 +2,20 @@ artifacts_root: artifacts
 
 
 data_ingestion:
-  root_dir: artifacts/data_ingestion/raw
+  root_dir: artifacts/data_ingestion
   source_URL: https://drive.google.com/file/d/13k9Yl1msxVidNneWm8XJXG__XRUWQBno/view?usp=sharing
-  local_data_file: artifacts/data_ingestion/raw/data.csv
-  unzip_dir: artifacts/data_ingestion
+  local_data_file: artifacts/data_ingestion/reddit.csv
+  
+
+data_validation:
+  DATA_VALIDATION_DIR: artifacts/data_validation
+  train_file_path: artifacts/data_validation/training_data.csv
+  test_file_path: artifacts/data_validation/test_data.csv
+  drift_report_file_path: artifacts/data_validation/drift_report.json
+  validation_status_file: artifacts/data_validation/data_validation_artifact.json
+  
+data_Transformation:  
+  root_dir: artifacts/data_Transformation
+  Preprocessed_file: artifacts/data_Transformation/data.csv
+  train_file: artifacts/data_Transformation/training_data.csv
+  test_file: artifacts/data_Transformation/test_file.csv

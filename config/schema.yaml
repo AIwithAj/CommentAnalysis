@@ -1,0 +1,14 @@
+columns:
+    - clean_comment
+    - category
+
+categorical_columns:
+  - category
+
+target_column: category
+
+category_values:
+  category: 
+    - positive
+    - neutral
+    - negative
