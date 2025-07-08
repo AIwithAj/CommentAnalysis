@@ -1,4 +1,4 @@
--e .
+
 dvc
 evidently
 gdown
@@ -13,3 +13,5 @@ tqdm
 typeguard
 types-pyYAML
 nltk==3.8.1
+lightgbm==4.5.0
+-e .

@@ -19,6 +19,8 @@ class DataValidationConfig:
     local_file_path:Path
 
 
+
+
 @dataclass(frozen=True)
 class DataTransformationConfig:
     train_file_path: Path
@@ -26,4 +28,21 @@ class DataTransformationConfig:
     DATA_transformation_DIR: Path
     transform_train_file: Path
     transform_test_file: Path
+    x_train_file_path: Path
+    y_train_file_path: Path
+    transformer: Path
+    max_features:int
+    ngram_range:tuple
 
+
+
+@dataclass(frozen=True)
+class ModelTrainerConfig:
+    trained_model_path:Path
+    x_train_file_path: Path
+    y_train_file_path: Path
+    root_dir:Path
+    transformer_obj:Path
+    learning_rate:float
+    max_depth:int
+    n_estimators:int

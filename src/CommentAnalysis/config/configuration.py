@@ -1,6 +1,7 @@
 from src.CommentAnalysis.constants import *
 from src.CommentAnalysis.utils.common import read_yaml, create_directories
-from  src.CommentAnalysis.entity.config_entity import DataIngestionConfig,DataValidationConfig,DataTransformationConfig
+import os
+from  src.CommentAnalysis.entity.config_entity import DataIngestionConfig,DataValidationConfig,DataTransformationConfig,ModelTrainerConfig
 class ConfigurationManager:
     def __init__(
         self,
@@ -52,19 +53,54 @@ class ConfigurationManager:
         config = self.config.data_Transformation
         config2=self.config.data_validation
 
+        trainfilepath = Path(config.transform_train_file)
+        trainfiledir,train_filename = os.path.split(trainfilepath)
 
-        create_directories([config.DATA_transformation_DIR])
+        testfilepath = Path(config.transform_test_file)
+        testfiledir, filename = os.path.split(testfilepath)
         
-
+        create_directories([config.DATA_transformation_DIR,trainfiledir,testfiledir])
+        
+        max_features = self.params['model_building']['max_features']
+        ngram_range = tuple(self.params['model_building']['ngram_range'])
         data_transformation_config = DataTransformationConfig(
             DATA_transformation_DIR=config.DATA_transformation_DIR,
             train_file_path=config2.train_file_path,
             test_file_path=config2.test_file_path,
             transform_train_file=config.transform_train_file,
-            transform_test_file=config.transform_test_file
-            
-            
-        )
+            transform_test_file=config.transform_test_file,
+            x_train_file_path=config.x_train_file_path,
+            y_train_file_path=config.y_train_file_path,
+            transformer=config.transformer,
+            max_features=max_features,
+            ngram_range=ngram_range)
 
         return data_transformation_config
+    def get_model_config(self) -> ModelTrainerConfig:
+
+        config = self.config.prepare_model
+        config2=self.config.data_Transformation
+
+        learning_rate = self.params['model_building']['learning_rate']
+        max_depth = self.params['model_building']['max_depth']
+        n_estimators = self.params['model_building']['n_estimators']
+
+
+        create_directories([config.root_dir])
+        
+
+        model_trainer_config = ModelTrainerConfig(
+            trained_model_path=config.trained_model_path,
+            x_train_file_path=config2.x_train_file_path,
+            y_train_file_path=config2.y_train_file_path,
+            root_dir=config.root_dir,
+            transformer_obj=config2.transformer,
+            learning_rate=learning_rate,
+            max_depth=max_depth,
+            n_estimators=n_estimators
+            
+        )
+        
+
+        return model_trainer_config
       

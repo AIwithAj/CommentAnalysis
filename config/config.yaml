@@ -16,5 +16,14 @@ data_validation:
   
 data_Transformation:  
   DATA_transformation_DIR: artifacts/data_Transformation
-  transform_train_file: artifacts/data_Transformation/transform_raining_data.csv
-  transform_test_file: artifacts/data_Transformation/transform_test_file.csv
+  transform_train_file: artifacts/data_Transformation/train/transform_training_data.csv
+  transform_test_file: artifacts/data_Transformation/test/transform_test_file.csv
+  x_train_file_path: artifacts/data_Transformation/train/x_train.npz
+  y_train_file_path: artifacts/data_Transformation/train/y_train.csv
+  transformer: artifacts/data_Transformation/transformer.pkl
+
+
+prepare_model:
+    root_dir: artifacts/prepare_base_model
+    trained_model_path: artifacts/prepare_base_model/trained_model.pkl
+    
