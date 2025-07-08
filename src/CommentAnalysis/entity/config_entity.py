@@ -19,3 +19,11 @@ class DataValidationConfig:
     local_file_path:Path
 
 
+@dataclass(frozen=True)
+class DataTransformationConfig:
+    train_file_path: Path
+    test_file_path: Path
+    DATA_transformation_DIR: Path
+    transform_train_file: Path
+    transform_test_file: Path
+

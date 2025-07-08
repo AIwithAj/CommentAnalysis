@@ -1,6 +1,6 @@
 from src.CommentAnalysis.constants import *
 from src.CommentAnalysis.utils.common import read_yaml, create_directories
-from  src.CommentAnalysis.entity.config_entity import DataIngestionConfig,DataValidationConfig
+from  src.CommentAnalysis.entity.config_entity import DataIngestionConfig,DataValidationConfig,DataTransformationConfig
 class ConfigurationManager:
     def __init__(
         self,
@@ -47,4 +47,24 @@ class ConfigurationManager:
 
         return data_validation_config
       
-    
+    def get_data_transformation_config(self) -> DataTransformationConfig:
+
+        config = self.config.data_Transformation
+        config2=self.config.data_validation
+
+
+        create_directories([config.DATA_transformation_DIR])
+        
+
+        data_transformation_config = DataTransformationConfig(
+            DATA_transformation_DIR=config.DATA_transformation_DIR,
+            train_file_path=config2.train_file_path,
+            test_file_path=config2.test_file_path,
+            transform_train_file=config.transform_train_file,
+            transform_test_file=config.transform_test_file
+            
+            
+        )
+
+        return data_transformation_config
+      

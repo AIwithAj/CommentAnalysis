@@ -12,3 +12,4 @@ setuptools
 tqdm
 typeguard
 types-pyYAML
+nltk==3.8.1

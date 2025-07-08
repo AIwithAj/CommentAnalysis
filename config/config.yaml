@@ -15,7 +15,6 @@ data_validation:
   validation_status_file: artifacts/data_validation/data_validation_artifact.json
   
 data_Transformation:  
-  root_dir: artifacts/data_Transformation
-  Preprocessed_file: artifacts/data_Transformation/data.csv
-  train_file: artifacts/data_Transformation/training_data.csv
-  test_file: artifacts/data_Transformation/test_file.csv
+  DATA_transformation_DIR: artifacts/data_Transformation
+  transform_train_file: artifacts/data_Transformation/transform_raining_data.csv
+  transform_test_file: artifacts/data_Transformation/transform_test_file.csv
