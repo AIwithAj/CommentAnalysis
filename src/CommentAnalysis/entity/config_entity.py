@@ -46,3 +46,17 @@ class ModelTrainerConfig:
     learning_rate:float
     max_depth:int
     n_estimators:int
+
+
+
+@dataclass(frozen=True)
+class EvaluationConfig:
+    path_of_model: Path
+    x_train_file_path: Path
+    y_train_file_path:Path
+    testing_data: Path
+    mlflow_uri: str
+    root_dir: Path
+    transformer:Path
+    file_path:Path
+    params_file_path:Path

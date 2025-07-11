@@ -1,17 +1,18 @@
-
 dvc
 evidently
 gdown
 joblib
-mlflow
+mlflow==2.8.1
 numpy
 pandas
 python-box
-pyYAML
+PyYAML
 setuptools
 tqdm
 typeguard
-types-pyYAML
+types-PyYAML
 nltk==3.8.1
 lightgbm==4.5.0
+seaborn
+dagshub
 -e .

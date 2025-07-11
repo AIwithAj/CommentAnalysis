@@ -1,7 +1,7 @@
 from src.CommentAnalysis.constants import *
 from src.CommentAnalysis.utils.common import read_yaml, create_directories
 import os
-from  src.CommentAnalysis.entity.config_entity import DataIngestionConfig,DataValidationConfig,DataTransformationConfig,ModelTrainerConfig
+from  src.CommentAnalysis.entity.config_entity import DataIngestionConfig,DataValidationConfig,DataTransformationConfig,ModelTrainerConfig,EvaluationConfig
 class ConfigurationManager:
     def __init__(
         self,
@@ -103,4 +103,21 @@ class ConfigurationManager:
         
 
         return model_trainer_config
-      
+    def get_evaluation_config(self) -> EvaluationConfig:
+        config=self.config.Model_Evaluation
+        Modelconfig = self.config.prepare_model
+        dataconfg=self.config.data_Transformation
+        create_directories([config.root_dir])
+
+        eval_config = EvaluationConfig(
+            path_of_model=Modelconfig.trained_model_path,
+            x_train_file_path=dataconfg.x_train_file_path,
+            y_train_file_path=dataconfg.y_train_file_path,
+            testing_data=dataconfg.transform_test_file,
+            mlflow_uri="https://dagshub.com/AIwithAj/CommentAnalysis.mlflow",
+            params_file_path=PARAMS_FILE_PATH,
+            root_dir=config.root_dir,
+            transformer=dataconfg.transformer,
+            file_path=config.file_path
+        )
+        return eval_config
