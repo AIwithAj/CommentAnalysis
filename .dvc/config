@@ -1,4 +1,4 @@
 [core]
-    remote = gdrive_remote
-['remote "gdrive_remote"']
-    url = gdrive://1xpar2ZRXaVhUBXLb0B_SRBAFYh7PEGS1
+    remote = local_remote
+['remote "local_remote"']
+    url = E:/dvc-data
