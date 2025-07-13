@@ -15,4 +15,5 @@ nltk==3.8.1
 lightgbm==4.5.0
 seaborn
 dagshub
+dvc
 -e .
