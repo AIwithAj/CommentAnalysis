@@ -37,6 +37,11 @@ def register_model(model_name: str, model_info: dict):
             version=model_version.version,
             stage="Staging"
         )
+        client.transition_model_version_stage(
+            name=model_name,
+            version=model_version.version,
+            alias="Staging"
+        )
         
         logger.debug(f'Model {model_name} version {model_version.version} registered and transitioned to Staging.')
     except Exception as e:
