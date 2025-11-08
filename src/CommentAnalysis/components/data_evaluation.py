@@ -104,11 +104,18 @@ class Evaluation:
         """
         Main function to run model evaluation and log to MLflow.
         """
-        dagshub.init(
-            repo_owner="AIwithAj",
-            repo_name="CommentAnalysis",
-            mlflow=True,
-        )
+        # dagshub.init(
+        #     repo_owner="AIwithAj",
+        #     repo_name="CommentAnalysis",
+        #     mlflow=True,
+        # )
+        import os
+        DAGSHUB_TOKEN=os.getenv('DAGSHUB_TOKEN')
+        if not DAGSHUB_TOKEN:
+            raise EnvironmentError("DAGSHUB_TOKEN is not set")
+        os.environ["MLFLOW_TRACKING_USERNAME"]="AIwithAj"
+        os.environ["MLFLOW_TRACKING_PASSWORD"]=DAGSHUB_TOKEN
+        mlflow.set_tracking_uri("https://dagshub.com/AIwithAj/CommentAnalysis.mlflow")
         mlflow.set_experiment('dvc-pipeline-runs')
 
         try:

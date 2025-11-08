@@ -50,11 +50,20 @@ def register_model(model_name: str, model_info: dict):
 
 def main():
     try:
-        dagshub.init(
-            repo_owner="AIwithAj",
-            repo_name="CommentAnalysis",
-            mlflow=True,
-        )
+        # dagshub.init(
+        #     repo_owner="AIwithAj",
+        #     repo_name="CommentAnalysis",
+        #     mlflow=True,
+        # )
+        
+        import os
+        DAGSHUB_TOKEN=os.getenv('DAGSHUB_TOKEN')
+        if not DAGSHUB_TOKEN:
+            raise EnvironmentError("DAGSHUB_TOKEN is not set")
+        os.environ["MLFLOW_TRACKING_USERNAME"]="AIwithAj"
+        os.environ["MLFLOW_TRACKING_PASSWORD"]=DAGSHUB_TOKEN
+        mlflow.set_tracking_uri("https://dagshub.com/AIwithAj/CommentAnalysis.mlflow")
+        
         config=read_yaml(CONFIG_FILE_PATH).Model_Evaluation
         model_info_path = config.file_path
         model_info = load_model_info(model_info_path)
