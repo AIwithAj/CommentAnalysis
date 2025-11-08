@@ -82,10 +82,12 @@ logs/
 log/
 
 # DVC
-.dvc/
-*.dvc
-.dvcignore
+# Track .dvc directory but ignore cache
 .dvc/cache
+.dvc/tmp
+# Track .dvc files and .dvcignore (they should be in git)
+# *.dvc files are tracked (metadata files)
+# .dvcignore is tracked
 
 # Artifacts
 artifacts/
