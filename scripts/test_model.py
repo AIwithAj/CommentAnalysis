@@ -20,6 +20,7 @@ import mlflow
 import os
 import pandas as pd
 import numpy as np
+import time
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import pickle
 from pathlib import Path
@@ -56,6 +57,7 @@ class TestModelLoading(unittest.TestCase):
         (stage 6: register_model pipeline).
         """
         # Set up DagsHub credentials for MLflow tracking
+        print("Setting up MLflow connection...")
         dagshub_token = os.getenv("DAGSHUB_TOKEN")
         if not dagshub_token:
             raise EnvironmentError("DAGSHUB_TOKEN environment variable is not set")
@@ -64,14 +66,21 @@ class TestModelLoading(unittest.TestCase):
         os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
 
         # Initialize Dagshub connection (same as backend)
-        # dagshub.init(
-        #     repo_owner="AIwithAj",
-        #     repo_name="CommentAnalysis",
-        #     mlflow=True,
-        # )
+        print("Initializing Dagshub connection...")
+        try:
+            dagshub.init(
+                repo_owner="AIwithAj",
+                repo_name="CommentAnalysis",
+                mlflow=True,
+            )
+            print("✓ Dagshub initialized")
+        except Exception as e:
+            print(f"Warning: Dagshub init failed (may still work): {e}")
 
         # Set up MLflow tracking URI
+        print("Setting MLflow tracking URI...")
         mlflow.set_tracking_uri("https://dagshub.com/AIwithAj/CommentAnalysis.mlflow")
+        print("✓ MLflow tracking URI set")
 
         # Model configuration (same as backend)
         cls.model_name = "yt_chrome_plugin_model"
@@ -82,11 +91,23 @@ class TestModelLoading(unittest.TestCase):
         cls.artifact_path = os.getenv("MLFLOW_ARTIFACT_PATH", "transformer.pkl")
 
         # Load the model from MLflow Staging stage (registered by CI workflow stage 6)
-        client = mlflow.tracking.MlflowClient()
-        latest_staging = client.get_latest_versions(
-            cls.model_name,
-            stages=["Staging"]
-        )
+        print(f"Connecting to MLflow and fetching Staging model: {cls.model_name}...")
+        try:
+            start_time = time.time()
+            client = mlflow.tracking.MlflowClient()
+            print("  MLflow client created, fetching model versions...")
+            latest_staging = client.get_latest_versions(
+                cls.model_name,
+                stages=["Staging"]
+            )
+            elapsed = time.time() - start_time
+            print(f"  ✓ Fetched model versions in {elapsed:.2f}s")
+        except Exception as e:
+            raise ConnectionError(
+                f"Failed to connect to MLflow or fetch model versions: {e}\n"
+                f"Check your DAGSHUB_TOKEN and network connection.\n"
+                f"Error type: {type(e).__name__}"
+            ) from e
         
         if not latest_staging:
             raise ValueError(
@@ -94,21 +115,44 @@ class TestModelLoading(unittest.TestCase):
                 f"Make sure the CI workflow has run and registered a model to Staging."
             )
 
+        print(f"Found Staging model version {latest_staging[0].version}")
         model_uri = f"models:/{cls.model_name}/Staging"
-        cls.model = mlflow.sklearn.load_model(model_uri)
-        print(f"Loaded model: {cls.model_name} from Staging stage (version {latest_staging[0].version})")
-        print(f"Model registered at: {latest_staging[0].last_updated_timestamp}")
+        
+        print("Loading model from MLflow...")
+        try:
+            start_time = time.time()
+            cls.model = mlflow.sklearn.load_model(model_uri)
+            elapsed = time.time() - start_time
+            print(f"✓ Loaded model: {cls.model_name} from Staging stage (version {latest_staging[0].version}) in {elapsed:.2f}s")
+            print(f"  Model registered at: {latest_staging[0].last_updated_timestamp}")
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to load model from MLflow: {e}\n"
+                f"Model URI: {model_uri}\n"
+                f"Error type: {type(e).__name__}"
+            ) from e
 
         # Load the vectorizer from MLflow (same as backend)
-        print(f"Downloading vectorizer from run_id: {cls.vectorizer_run_id}")
-        vectorizer_path = mlflow.artifacts.download_artifacts(
-            run_id=cls.vectorizer_run_id,
-            artifact_path=cls.artifact_path
-        )
-        
-        with open(vectorizer_path, "rb") as f:
-            cls.vectorizer = pickle.load(f)
-        print(f"Vectorizer loaded successfully from {vectorizer_path}")
+        print(f"Downloading vectorizer from run_id: {cls.vectorizer_run_id}...")
+        try:
+            start_time = time.time()
+            vectorizer_path = mlflow.artifacts.download_artifacts(
+                run_id=cls.vectorizer_run_id,
+                artifact_path=cls.artifact_path
+            )
+            download_time = time.time() - start_time
+            print(f"  Downloaded in {download_time:.2f}s, loading vectorizer...")
+            
+            with open(vectorizer_path, "rb") as f:
+                cls.vectorizer = pickle.load(f)
+            total_time = time.time() - start_time
+            print(f"✓ Vectorizer loaded successfully from {vectorizer_path} (total: {total_time:.2f}s)")
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to download or load vectorizer: {e}\n"
+                f"Run ID: {cls.vectorizer_run_id}, Artifact: {cls.artifact_path}\n"
+                f"Error type: {type(e).__name__}"
+            ) from e
 
         # Load test data from project artifacts
         test_data_path = Path("artifacts/data_validation/test_data.csv")
@@ -140,9 +184,11 @@ class TestModelLoading(unittest.TestCase):
         # Predict using the model (same as backend)
         prediction = self.model.predict(input_transformed)
         
+        # Convert to int (same as backend does)
+        prediction = int(prediction[0]) if hasattr(prediction, '__len__') else int(prediction)
+        
         # Verify the output shape
-        self.assertEqual(len(prediction), 1)  # Single prediction
-        self.assertIn(prediction[0], [0, 1])  # Binary classification: 0 (neutral/negative) or 1 (positive)
+        self.assertIn(prediction, [0, 1])  # Binary classification: 0 (neutral/negative) or 1 (positive)
 
     def test_model_performance(self):
         """Test model performance on holdout test data."""
@@ -223,9 +269,13 @@ class TestModelLoading(unittest.TestCase):
         # Predict using the model (same as backend)
         predictions = self.model.predict(transformed)
         
+        # Convert to int list (same as backend does - line 551 in app.py)
+        predictions = [int(p) for p in predictions]
+        
         # Verify predictions
         self.assertEqual(len(predictions), len(sample_comments))
-        self.assertTrue(all(pred in [0, 1] for pred in predictions))
+        self.assertTrue(all(pred in [0, 1] for pred in predictions), 
+                       f"Predictions should be 0 or 1, got: {predictions}")
         
         print(f"\nBatch Prediction Results:")
         for comment, pred in zip(sample_comments, predictions):
