@@ -67,3 +67,13 @@ stages:
       - artifacts/data_Transformation/transformer.pkl
     outs:
       - artifacts/Model_Evaluation/experiment_info.json
+
+  register_model:
+    cmd: python -m src.CommentAnalysis.pipeline.stage_06_register_model
+    deps:
+      - src/CommentAnalysis/pipeline/stage_06_register_model.py
+      - src/CommentAnalysis/pipeline/register_model.py
+      - config/config.yaml
+      - artifacts/Model_Evaluation/experiment_info.json
+    outs:
+      - artifacts/Model_Evaluation/model_registered.txt

@@ -179,3 +179,27 @@ stages:
       hash: md5
       md5: 33843e79cfa6501e95e5bb9cb272df2a
       size: 575
+  register_model:
+    cmd: python -m src.CommentAnalysis.pipeline.stage_06_register_model
+    deps:
+    - path: artifacts/Model_Evaluation/experiment_info.json
+      hash: md5
+      md5: 33843e79cfa6501e95e5bb9cb272df2a
+      size: 575
+    - path: config/config.yaml
+      hash: md5
+      md5: f74eaa3956defba75c98dc484285ed42
+      size: 1310
+    - path: src/CommentAnalysis/pipeline/register_model.py
+      hash: md5
+      md5: b925dffe1ce7425fc0f1ddd31b45f96b
+      size: 4498
+    - path: src/CommentAnalysis/pipeline/stage_06_register_model.py
+      hash: md5
+      md5: f33956b8b92eff1c75d854d6d2867ea3
+      size: 863
+    outs:
+    - path: artifacts/Model_Evaluation/model_registered.txt
+      hash: md5
+      md5: e643e34981cf577183f99418f88431c9
+      size: 135
