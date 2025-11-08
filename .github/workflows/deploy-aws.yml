@@ -34,6 +34,22 @@ jobs:
              DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN}}
           run: |
             python -m unittest scripts/test_model.py
+        
+        - name: promote model to production
+          if: success()
+          env:
+            DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN}}
+          run: |
+            python scripts/promote_model.py
+        - name: run Flask app tests
+          env:
+            DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN}}
+            DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME}}
+          run: |
+            cd CommentAnaysisExtension/backend
+            pip install -r requirements.txt
+            python -m unittest tests.test_app -v
+        
 
 
 

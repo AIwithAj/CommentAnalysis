@@ -188,7 +188,10 @@ class TestModelLoading(unittest.TestCase):
         prediction = int(prediction[0]) if hasattr(prediction, '__len__') else int(prediction)
         
         # Verify the output shape
-        self.assertIn(prediction, [0, 1])  # Binary classification: 0 (neutral/negative) or 1 (positive)
+        # Model outputs: 1 (positive), 0 (neutral), -1 (negative)
+        # Based on backend app.py lines 289-294
+        self.assertIn(prediction, [-1, 0, 1], 
+                     f"Prediction should be -1, 0, or 1, got: {prediction}")
 
     def test_model_performance(self):
         """Test model performance on holdout test data."""
@@ -273,13 +276,21 @@ class TestModelLoading(unittest.TestCase):
         predictions = [int(p) for p in predictions]
         
         # Verify predictions
+        # Model outputs: 1 (positive), 0 (neutral), -1 (negative)
+        # Based on backend app.py lines 289-294
         self.assertEqual(len(predictions), len(sample_comments))
-        self.assertTrue(all(pred in [0, 1] for pred in predictions), 
-                       f"Predictions should be 0 or 1, got: {predictions}")
+        self.assertTrue(all(pred in [-1, 0, 1] for pred in predictions), 
+                       f"Predictions should be -1, 0, or 1, got: {predictions}")
         
         print(f"\nBatch Prediction Results:")
         for comment, pred in zip(sample_comments, predictions):
-            sentiment = "positive" if pred == 1 else "neutral/negative"
+            # Match backend logic (app.py lines 289-294)
+            if pred == 1:
+                sentiment = "positive"
+            elif pred == 0:
+                sentiment = "neutral"
+            else:  # pred == -1
+                sentiment = "negative"
             print(f"  '{comment[:50]}...' -> {sentiment} ({pred})")
 
 
