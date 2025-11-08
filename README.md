@@ -1,148 +1,535 @@
-# CommentAnalysis
-# End-to-End-CommentAnalysis-MLflow-DVC
+# Comment Analysis - End-to-End MLOps Project
 
+A complete MLOps pipeline for YouTube comment sentiment analysis with production-ready deployment.
 
-## Workflows
+## 📋 Table of Contents
 
-1. Update config.yaml
-2. Update secrets.yaml [Optional]
-3. Update params.yaml
-4. Update the entity
-5. Update the configuration manager in src config
-6. Update the components
-7. Update the pipeline 
-8. Update the main.py
-9. Update the dvc.yaml
+- [Project Overview](#-project-overview)
+- [Prerequisites](#-prerequisites)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+- [Running the Backend](#-running-the-backend)
+- [Running the Frontend](#-running-the-frontend)
+- [Running the Complete Project](#-running-the-complete-project)
+- [ML Pipeline](#-ml-pipeline)
+- [Development](#-development)
+- [Docker Deployment](#-docker-deployment)
+- [Troubleshooting](#-troubleshooting)
 
+## 🎯 Project Overview
 
+This project consists of three main components:
+1. **ML Pipeline** - End-to-end MLOps pipeline for training sentiment analysis models
+2. **Backend API** - Flask REST API for sentiment analysis
+3. **Frontend Extension** - Chrome extension built with Vue.js for YouTube comment analysis
 
+## 📦 Prerequisites
 
+Before you begin, ensure you have the following installed:
 
-## MLflow
+- **Python 3.8+** - [Download Python](https://www.python.org/downloads/)
+- **Node.js 16+** - [Download Node.js](https://nodejs.org/)
+- **npm** or **yarn** - Comes with Node.js
+- **Git** - [Download Git](https://git-scm.com/downloads)
+- **DVC** (Optional, for ML pipeline) - `pip install dvc`
+- **Docker** (Optional, for containerized deployment) - [Download Docker](https://www.docker.com/get-started)
 
-- [Documentation](https://mlflow.org/docs/latest/index.html)
-
-- [MLflow tutorial](https://youtube.com/playlist?list=PLkz_y24mlSJZrqiZ4_cLUiP0CBN5wFmTb&si=zEp_C8zLHt1DzWKK)
-
-##### cmd
-- mlflow ui
-
-### dagshub
-[dagshub](https://dagshub.com/)
-
-MLFLOW_TRACKING_URI=https://dagshub.com/AIwithAj/CommentAnalysis.mlflow \
-MLFLOW_TRACKING_USERNAME=AIwithAj \
-MLFLOW_TRACKING_PASSWORD=0a81768752e8fb95f29e26fbb8e9b9d1f3cb2dbe \
-python script.py
-
-Run this to export as env variables:
-
-```bash
-
-export MLFLOW_TRACKING_URI=https://dagshub.com/AIwithAj/CommentAnalysis.mlflow \
-
-export MLFLOW_TRACKING_USERNAME=AIwithAj 
-
-export MLFLOW_TRACKING_PASSWORD=0a81768752e8fb95f29e26fbb8e9b9d1f3cb2dbe 
+## 🏗️ Project Structure
 
 ```
+CommentAnalysis/
+├── src/                          # ML Pipeline source code
+│   └── CommentAnalysis/
+│       ├── components/           # Pipeline components
+│       ├── config/               # Configuration management
+│       ├── pipeline/             # DVC pipeline stages
+│       └── utils/                # Utility functions
+├── CommentAnaysisExtension/      # Application deployment
+│   ├── backend/                  # Flask API backend
+│   │   ├── app.py                # Main Flask application
+│   │   ├── config.py             # Configuration management
+│   │   ├── requirements.txt      # Python dependencies
+│   │   ├── run_local.py          # Local development runner
+│   │   └── .env                  # Environment variables (create this)
+│   └── youtube-sentiment-extension/  # Chrome extension (frontend)
+│       ├── src/                  # Vue.js source code
+│       ├── package.json          # Node.js dependencies
+│       ├── vite.config.js        # Vite configuration
+│       └── dist/                 # Built extension files
+├── config/                       # Configuration files
+├── research/                     # Jupyter notebooks
+├── scripts/                      # Utility scripts
+└── artifacts/                    # DVC tracked artifacts
+```
 
+## 🚀 Getting Started
 
+### 1. Clone the Repository
 
-### DVC cmd
+```bash
+git clone <repository-url>
+cd CommentAnalysis
+```
 
-1. dvc init
-2. dvc repro
-3. dvc dag
+### 2. Setup Python Environment (for Backend & ML Pipeline)
 
+```bash
+# Create a virtual environment (recommended)
+python -m venv venv
 
-## About MLflow & DVC
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
 
-MLflow
+# Install ML pipeline dependencies
+pip install -r requirements.txt
 
- - Its Production Grade
- - Trace all of your expriements
- - Logging & taging your model
+# Install backend dependencies
+cd CommentAnaysisExtension/backend
+pip install -r requirements.txt
+cd ../..
+```
 
+### 3. Setup Node.js Environment (for Frontend)
 
-DVC 
+```bash
+cd CommentAnaysisExtension/youtube-sentiment-extension
+npm install
+cd ../..
+```
 
- - Its very lite weight for POC only
- - lite weight expriements tracker
- - It can perform Orchestration (Creating Pipelines)
+### 4. Configure Environment Variables
 
+#### Backend Configuration
 
+Create a `.env` file in `CommentAnaysisExtension/backend/`:
 
-# AWS-CICD-Deployment-with-Github-Actions
+```bash
+cd CommentAnaysisExtension/backend
+# Create .env file
+# On Windows (PowerShell):
+New-Item -ItemType File -Path .env
+# On macOS/Linux:
+touch .env
+```
 
-## 1. Login to AWS console.
+Add the following to `.env`:
 
-## 2. Create IAM user for deployment
+```env
+# Dagshub Credentials (Required for model loading)
+DAGSHUB_USERNAME=your_username
+DAGSHUB_TOKEN=your_token
 
-	#with specific access
+# Flask Configuration
+FLASK_ENV=development
+PORT=8000
+HOST=127.0.0.1
+DEBUG=True
 
-	1. EC2 access : It is virtual machine
+# CORS Configuration
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:8080
 
-	2. ECR: Elastic Container registry to save your docker image in aws
+# MLflow Configuration
+MLFLOW_TRACKING_URI=https://dagshub.com/AIwithAj/CommentAnalysis.mlflow
+MLFLOW_MODEL_NAME=yt_chrome_plugin_model
+MLFLOW_VECTORIZER_RUN_ID=e7456a00a6d74d1f9dfc2da425a41d24
+MLFLOW_ARTIFACT_PATH=transformer.pkl
 
+# Logging
+LOG_LEVEL=DEBUG
+```
 
-	#Description: About the deployment
+**Note**: Replace `your_username` and `your_token` with your actual Dagshub credentials.
 
-	1. Build docker image of the source code
+## 🔧 Running the Backend
 
-	2. Push your docker image to ECR
+The backend is a Flask REST API that provides sentiment analysis endpoints.
 
-	3. Launch Your EC2 
+### Option 1: Using Python Script (Recommended for Development)
 
-	4. Pull Your image from ECR in EC2
+```bash
+# Navigate to backend directory
+cd CommentAnaysisExtension/backend
 
-	5. Lauch your docker image in EC2
+# Make sure virtual environment is activated
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
 
-	#Policy:
+# Run the backend
+python run_local.py
+```
 
-	1. AmazonEC2ContainerRegistryFullAccess
+The backend will start on `http://127.0.0.1:8000`
 
-	2. AmazonEC2FullAccess
+### Option 2: Using Flask Directly
 
-	
-## 3. Create ECR repo to store/save docker image
-    - Save the URI: 566373416292.dkr.ecr.us-east-1.amazonaws.com/chicken
+```bash
+cd CommentAnaysisExtension/backend
 
-	
-## 4. Create EC2 machine (Ubuntu) 
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
 
-## 5. Open EC2 and Install docker in EC2 Machine:
-	
-	
-	#optinal
+# Run Flask app
+python app.py
+```
 
-	sudo apt-get update -y
+### Option 3: Using Docker
 
-	sudo apt-get upgrade
-	
-	#required
+```bash
+# From project root
+docker-compose up backend
 
-	curl -fsSL https://get.docker.com -o get-docker.sh
+# Or build and run manually
+cd CommentAnaysisExtension/backend
+docker build -t comment-analysis-backend .
+docker run -p 8000:8000 --env-file .env comment-analysis-backend
+```
 
-	sudo sh get-docker.sh
+### Backend API Endpoints
 
-	sudo usermod -aG docker ubuntu
+Once the backend is running, you can access:
 
-	newgrp docker
-	
-# 6. Configure EC2 as self-hosted runner:
-    setting>actions>runner>new self hosted runner> choose os> then run command one by one
+- **Health Check**: `http://127.0.0.1:8000/health`
+- **Readiness Check**: `http://127.0.0.1:8000/ready`
+- **Demo Analysis**: `http://127.0.0.1:8000/demo` (GET)
+- **Analyze Comments**: `http://127.0.0.1:8000/analyze_comments` (POST)
+- **Predict with Timestamps**: `http://127.0.0.1:8000/predict_with_timestamps` (POST)
 
+### Testing the Backend
 
-# 7. Setup github secrets:
+```bash
+# Test health endpoint
+curl http://127.0.0.1:8000/health
 
-    AWS_ACCESS_KEY_ID=
+# Test demo endpoint
+curl http://127.0.0.1:8000/demo
 
-    AWS_SECRET_ACCESS_KEY=
+# Test analyze endpoint
+curl -X POST http://127.0.0.1:8000/analyze_comments \
+  -H "Content-Type: application/json" \
+  -d '{
+    "comments": [
+      {
+        "text": "This video is amazing!",
+        "timestamp": "2025-01-15T10:00:00Z",
+        "authorId": "user1"
+      }
+    ]
+  }'
+```
 
-    AWS_REGION = us-east-1
+## 🎨 Running the Frontend
 
-    AWS_ECR_LOGIN_URI = demo>>  566373416292.dkr.ecr.ap-south-1.amazonaws.com
+The frontend is a Chrome extension built with Vue.js and Vite.
 
-    ECR_REPOSITORY_NAME = simple-app
+### Development Mode
 
+```bash
+# Navigate to frontend directory
+cd CommentAnaysisExtension/youtube-sentiment-extension
+
+# Install dependencies (if not already done)
+npm install
+
+# Start development server
+npm run dev
+```
+
+This will start the Vite development server. However, for a Chrome extension, you'll need to build it first.
+
+### Building the Extension
+
+```bash
+cd CommentAnaysisExtension/youtube-sentiment-extension
+
+# Build the extension
+npm run build
+```
+
+This creates a `dist/` folder with the built extension files.
+
+### Loading the Extension in Chrome
+
+1. Open Chrome and navigate to `chrome://extensions/`
+2. Enable "Developer mode" (toggle in top right)
+3. Click "Load unpacked"
+4. Select the `CommentAnaysisExtension/youtube-sentiment-extension/dist` folder
+5. The extension should now be loaded and ready to use
+
+### Frontend Development Workflow
+
+1. Make changes to files in `src/`
+2. Run `npm run build` to rebuild
+3. In Chrome extensions page, click the reload icon on your extension
+4. Test your changes
+
+## 🚀 Running the Complete Project
+
+To run both backend and frontend together:
+
+### Terminal 1 - Backend
+
+```bash
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+
+# Navigate to backend
+cd CommentAnaysisExtension/backend
+
+# Run backend
+python run_local.py
+```
+
+### Terminal 2 - Frontend (if needed for development)
+
+```bash
+cd CommentAnaysisExtension/youtube-sentiment-extension
+
+# Build extension
+npm run build
+
+# Or run dev server (for testing components)
+npm run dev
+```
+
+### Using Docker Compose (All Services)
+
+```bash
+# From project root
+docker-compose up
+```
+
+This will start the backend service. The frontend extension needs to be built and loaded manually in Chrome.
+
+## 📊 ML Pipeline
+
+The ML pipeline uses DVC for orchestration:
+
+```bash
+# View pipeline structure
+dvc dag
+
+# Run complete pipeline
+dvc repro
+
+# Run specific stage
+dvc repro stage_01_data_ingestion
+
+# Pull data artifacts
+dvc pull
+
+# Push artifacts
+dvc push
+```
+
+### Pipeline Stages
+
+1. **Data Ingestion** (`stage_01_data_ingestion`) - Download and store data
+2. **Data Validation** (`stage_02_data_validation`) - Validate and split data
+3. **Data Transformation** (`stage_03_data_transformation`) - Feature engineering
+4. **Model Training** (`stage_04_model_trainer`) - Train ML model
+5. **Model Evaluation** (`stage_05_Evaluation`) - Evaluate and register model
+
+## 🔧 Development
+
+### Code Quality
+
+```bash
+# Lint code
+make lint
+
+# Format code
+make format
+
+# Run tests
+make test
+
+# All checks
+make check-all
+```
+
+### Backend Testing
+
+```bash
+cd CommentAnaysisExtension/backend
+
+# Run tests
+pytest tests/ -v
+
+# With coverage
+pytest tests/ --cov=. --cov-report=html
+```
+
+### Pre-commit Hooks
+
+```bash
+# Install pre-commit
+pip install pre-commit
+pre-commit install
+
+# Run manually
+pre-commit run --all-files
+```
+
+## 🐳 Docker Deployment
+
+### Backend Only
+
+```bash
+# Build image
+cd CommentAnaysisExtension/backend
+docker build -t comment-analysis-backend .
+
+# Run container
+docker run -p 8000:8000 --env-file .env comment-analysis-backend
+```
+
+### Using Docker Compose
+
+```bash
+# From project root
+docker-compose up
+
+# Run in background
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+## 🐛 Troubleshooting
+
+### Backend Issues
+
+#### Model Not Loading
+- **Problem**: Health check returns "degraded" status
+- **Solution**: 
+  - Verify `DAGSHUB_USERNAME` and `DAGSHUB_TOKEN` are set in `.env`
+  - Check internet connection (model is downloaded from Dagshub)
+  - Verify MLflow tracking URI is correct
+
+#### Port Already in Use
+- **Problem**: `Address already in use` error
+- **Solution**: 
+  - Change `PORT` in `.env` to a different port (e.g., 8001)
+  - Or stop the process using port 8000
+
+#### Import Errors
+- **Problem**: Module not found errors
+- **Solution**: 
+  - Ensure virtual environment is activated
+  - Reinstall dependencies: `pip install -r requirements.txt`
+
+### Frontend Issues
+
+#### Build Errors
+- **Problem**: `npm run build` fails
+- **Solution**: 
+  - Delete `node_modules` and `package-lock.json`
+  - Run `npm install` again
+  - Check Node.js version (should be 16+)
+
+#### Extension Not Loading
+- **Problem**: Chrome shows errors when loading extension
+- **Solution**: 
+  - Ensure you're loading the `dist/` folder, not `src/`
+  - Check browser console for errors
+  - Verify `manifest.json` is in the `dist/` folder
+
+#### CORS Errors
+- **Problem**: Frontend can't connect to backend
+- **Solution**: 
+  - Verify backend is running
+  - Check `ALLOWED_ORIGINS` in backend `.env` includes your frontend URL
+  - Ensure backend CORS is properly configured
+
+### DVC Issues
+
+```bash
+# Reinitialize DVC
+dvc init
+
+# Check status
+dvc status
+
+# Pull missing files
+dvc pull
+
+# Remove cache and re-run
+dvc cache dir
+dvc repro --force
+```
+
+## 📚 Additional Documentation
+
+- [Backend README](CommentAnaysisExtension/backend/README.md) - Detailed backend API documentation
+- [AWS Deployment Guide](CommentAnaysisExtension/backend/AWS_DEPLOYMENT_GUIDE.md) - Production deployment instructions
+- [DVC Documentation](https://dvc.org/doc) - Data version control guide
+
+## 🔒 Security
+
+- ✅ Secrets stored in environment variables
+- ✅ Rate limiting on API endpoints
+- ✅ Input validation and sanitization
+- ✅ Security scanning in CI/CD
+- ✅ Non-root Docker containers
+
+## 📊 Monitoring
+
+- Structured logging
+- CloudWatch integration (production)
+- Health check endpoints (`/health`, `/ready`)
+- Request/response logging
+
+## 🤝 Contributing
+
+1. Install pre-commit hooks: `pre-commit install`
+2. Make your changes
+3. Run tests: `make test`
+4. Format code: `make format`
+5. Commit (pre-commit will run automatically)
+
+## 📝 Environment Variables Summary
+
+### Backend Required Variables
+- `DAGSHUB_USERNAME` - Your Dagshub username
+- `DAGSHUB_TOKEN` - Your Dagshub access token
+
+### Backend Optional Variables
+- `FLASK_ENV` - Environment (development/production)
+- `PORT` - Server port (default: 8000)
+- `HOST` - Server host (default: 127.0.0.1)
+- `ALLOWED_ORIGINS` - CORS allowed origins
+- `LOG_LEVEL` - Logging level (DEBUG/INFO/WARNING/ERROR)
+
+## 📄 License
+
+See LICENSE file.
+
+## 🙏 Acknowledgments
+
+- DVC for data versioning
+- MLflow for model tracking
+- Dagshub for MLflow hosting
+- Flask for API framework
+- Vue.js for frontend framework
+- Vite for build tooling
+
+---
+
+**Status**: ✅ Production Ready
+
+**Last Updated**: 2025-01-15

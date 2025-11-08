@@ -1,0 +1,181 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python -m src.CommentAnalysis.pipeline.stage_01_data_ingestion
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: f74eaa3956defba75c98dc484285ed42
+      size: 1310
+    - path: src/CommentAnalysis/pipeline/stage_01_data_ingestion.py
+      hash: md5
+      md5: 7b5b8df0d80528012e8b2cfcd7b6a128
+      size: 895
+    outs:
+    - path: artifacts/data_ingestion/reddit.csv
+      hash: md5
+      md5: 38ee083169162dbac0cb07c80ac0f04e
+      size: 6888934
+  data_validation:
+    cmd: python -m src.CommentAnalysis.pipeline.stage_02_data_validation
+    deps:
+    - path: artifacts/data_ingestion/reddit.csv
+      hash: md5
+      md5: 38ee083169162dbac0cb07c80ac0f04e
+      size: 6888934
+    - path: config/config.yaml
+      hash: md5
+      md5: f74eaa3956defba75c98dc484285ed42
+      size: 1310
+    - path: params.yaml
+      hash: md5
+      md5: 36887a174a8a9b6c938948ba3e0bb323
+      size: 143
+    - path: src/CommentAnalysis/pipeline/stage_02_data_validation.py
+      hash: md5
+      md5: 8f734d04664bbe0080b4eb43fcf9f03c
+      size: 1027
+    outs:
+    - path: artifacts/data_validation/data_validation_artifact.json
+      hash: md5
+      md5: 7c2b959eb28ce7cb869b3b547e45e7b7
+      size: 293
+    - path: artifacts/data_validation/drift_report.json
+      hash: md5
+      md5: d02dfba8921fc0566d761943df594492
+      size: 387
+    - path: artifacts/data_validation/test_data.csv
+      hash: md5
+      md5: 1a745f296a26fd0ec07b56b4f5ae55cd
+      size: 1385471
+    - path: artifacts/data_validation/training_data.csv
+      hash: md5
+      md5: 05d646cdc952589bc3835754971eb582
+      size: 5540734
+  data_transformation:
+    cmd: python -m src.CommentAnalysis.pipeline.stage_03_data_transformation
+    deps:
+    - path: artifacts/data_validation/test_data.csv
+      hash: md5
+      md5: 1a745f296a26fd0ec07b56b4f5ae55cd
+      size: 1385471
+    - path: artifacts/data_validation/training_data.csv
+      hash: md5
+      md5: 05d646cdc952589bc3835754971eb582
+      size: 5540734
+    - path: config/config.yaml
+      hash: md5
+      md5: f74eaa3956defba75c98dc484285ed42
+      size: 1310
+    - path: params.yaml
+      hash: md5
+      md5: 36887a174a8a9b6c938948ba3e0bb323
+      size: 143
+    - path: src/CommentAnalysis/pipeline/stage_03_data_transformation.py
+      hash: md5
+      md5: 839cdde82e5f939fc507ef8faa8c706a
+      size: 1087
+    params:
+      params.yaml:
+        model_building.max_features: 10000
+        model_building.ngram_range:
+        - 1
+        - 3
+    outs:
+    - path: artifacts/data_Transformation/test/transform_test_file.csv
+      hash: md5
+      md5: fed2481dfaf61d38f2ee55e9605138cd
+      size: 1024492
+    - path: artifacts/data_Transformation/train/transform_training_data.csv
+      hash: md5
+      md5: e23b1dcf73f8303d345a1b3f277022f3
+      size: 4112910
+    - path: artifacts/data_Transformation/train/x_train.npz
+      hash: md5
+      md5: b8042604cabf88445ecd63e52172be3d
+      size: 4405488
+    - path: artifacts/data_Transformation/train/y_train.csv
+      hash: md5
+      md5: 125cb71ad4d949c033d6611b0fe8ace4
+      size: 95776
+    - path: artifacts/data_Transformation/transformer.pkl
+      hash: md5
+      md5: 5d5ad849da8118f1c4db6ce7de0e6762
+      size: 343889
+  model_trainer:
+    cmd: python -m src.CommentAnalysis.pipeline.stage_04_model_trainer
+    deps:
+    - path: artifacts/data_Transformation/train/x_train.npz
+      hash: md5
+      md5: b8042604cabf88445ecd63e52172be3d
+      size: 4405488
+    - path: artifacts/data_Transformation/train/y_train.csv
+      hash: md5
+      md5: 125cb71ad4d949c033d6611b0fe8ace4
+      size: 95776
+    - path: artifacts/data_Transformation/transformer.pkl
+      hash: md5
+      md5: 5d5ad849da8118f1c4db6ce7de0e6762
+      size: 343889
+    - path: config/config.yaml
+      hash: md5
+      md5: f74eaa3956defba75c98dc484285ed42
+      size: 1310
+    - path: params.yaml
+      hash: md5
+      md5: 36887a174a8a9b6c938948ba3e0bb323
+      size: 143
+    - path: src/CommentAnalysis/pipeline/stage_04_model_trainer.py
+      hash: md5
+      md5: 4975b2c843de2b21a7489af033044d93
+      size: 947
+    params:
+      params.yaml:
+        model_building.learning_rate: 0.09
+        model_building.max_depth: 20
+        model_building.n_estimators: 367
+    outs:
+    - path: artifacts/prepare_base_model/trained_model.pkl
+      hash: md5
+      md5: 1ee3a979cc42cb1363c8016ad67c568d
+      size: 4092364
+  evaluation:
+    cmd: python -m src.CommentAnalysis.pipeline.stage_05_Evaluation
+    deps:
+    - path: artifacts/data_Transformation/test/transform_test_file.csv
+      hash: md5
+      md5: fed2481dfaf61d38f2ee55e9605138cd
+      size: 1024492
+    - path: artifacts/data_Transformation/train/x_train.npz
+      hash: md5
+      md5: b8042604cabf88445ecd63e52172be3d
+      size: 4405488
+    - path: artifacts/data_Transformation/train/y_train.csv
+      hash: md5
+      md5: 125cb71ad4d949c033d6611b0fe8ace4
+      size: 95776
+    - path: artifacts/data_Transformation/transformer.pkl
+      hash: md5
+      md5: 5d5ad849da8118f1c4db6ce7de0e6762
+      size: 343889
+    - path: artifacts/prepare_base_model/trained_model.pkl
+      hash: md5
+      md5: 1ee3a979cc42cb1363c8016ad67c568d
+      size: 4092364
+    - path: config/config.yaml
+      hash: md5
+      md5: f74eaa3956defba75c98dc484285ed42
+      size: 1310
+    - path: params.yaml
+      hash: md5
+      md5: 36887a174a8a9b6c938948ba3e0bb323
+      size: 143
+    - path: src/CommentAnalysis/pipeline/stage_05_Evaluation.py
+      hash: md5
+      md5: 56c8a58d8d66045f8625d81ff70645bc
+      size: 955
+    outs:
+    - path: artifacts/Model_Evaluation/experiment_info.json
+      hash: md5
+      md5: 33843e79cfa6501e95e5bb9cb272df2a
+      size: 575

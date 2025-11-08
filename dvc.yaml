@@ -1,54 +1,69 @@
 stages:
   data_ingestion:
-    cmd: python src/CommentAnalysis/pipeline/stage_01_data_ingestion.py
+    cmd: python -m src.CommentAnalysis.pipeline.stage_01_data_ingestion
     deps:
       - src/CommentAnalysis/pipeline/stage_01_data_ingestion.py
       - config/config.yaml
     outs:
       - artifacts/data_ingestion/reddit.csv
 
-
-  prepare_base_model:
-    cmd: python src/CommentAnalysis/pipeline/stage02_preparebasemodel.py
+  data_validation:
+    cmd: python -m src.CommentAnalysis.pipeline.stage_02_data_validation
     deps:
-      - src/CommentAnalysis/pipeline/stage02_preparebasemodel.py
+      - src/CommentAnalysis/pipeline/stage_02_data_validation.py
       - config/config.yaml
-    params:
-      - IMAGE_SIZE
-      - INCLUDE_TOP
-      - CLASSES
-      - WEIGHTS
-      - LEARNING_RATE
-    outs:
-      - artifacts/prepare_base_model
-
-
-  training:
-    cmd: python src/CommentAnalysis/pipeline/stage03_model_train.py
-    deps:
-      - src/CommentAnalysis/pipeline/stage03_model_train.py
-      - config/config.yaml
+      - params.yaml
       - artifacts/data_ingestion/reddit.csv
-      - artifacts/prepare_base_model
-    params:
-      - IMAGE_SIZE
-      - EPOCHS
-      - BATCH_SIZE
-      - AUGMENTATION
     outs:
-      - artifacts/training/model.h5
+      - artifacts/data_validation/training_data.csv
+      - artifacts/data_validation/test_data.csv
+      - artifacts/data_validation/drift_report.json
+      - artifacts/data_validation/data_validation_artifact.json
 
+  data_transformation:
+    cmd: python -m src.CommentAnalysis.pipeline.stage_03_data_transformation
+    deps:
+      - src/CommentAnalysis/pipeline/stage_03_data_transformation.py
+      - config/config.yaml
+      - params.yaml
+      - artifacts/data_validation/training_data.csv
+      - artifacts/data_validation/test_data.csv
+    params:
+      - model_building.max_features
+      - model_building.ngram_range
+    outs:
+      - artifacts/data_Transformation/train/transform_training_data.csv
+      - artifacts/data_Transformation/test/transform_test_file.csv
+      - artifacts/data_Transformation/train/x_train.npz
+      - artifacts/data_Transformation/train/y_train.csv
+      - artifacts/data_Transformation/transformer.pkl
+
+  model_trainer:
+    cmd: python -m src.CommentAnalysis.pipeline.stage_04_model_trainer
+    deps:
+      - src/CommentAnalysis/pipeline/stage_04_model_trainer.py
+      - config/config.yaml
+      - params.yaml
+      - artifacts/data_Transformation/train/x_train.npz
+      - artifacts/data_Transformation/train/y_train.csv
+      - artifacts/data_Transformation/transformer.pkl
+    params:
+      - model_building.learning_rate
+      - model_building.max_depth
+      - model_building.n_estimators
+    outs:
+      - artifacts/prepare_base_model/trained_model.pkl
 
   evaluation:
-    cmd: python src/CommentAnalysis/pipeline/stage_04_model_evaluation.py
-    deps: 
-      - src/CommentAnalysis/pipeline/stage_04_model_evaluation.py
+    cmd: python -m src.CommentAnalysis.pipeline.stage_05_Evaluation
+    deps:
+      - src/CommentAnalysis/pipeline/stage_05_Evaluation.py
       - config/config.yaml
-      - artifacts/data_ingestion/reddit.csv
-      - artifacts/training/model.h5
-    params:
-      - IMAGE_SIZE
-      - BATCH_SIZE
-    metrics:
-    - scores.json:
-        cache: false
+      - params.yaml
+      - artifacts/prepare_base_model/trained_model.pkl
+      - artifacts/data_Transformation/train/x_train.npz
+      - artifacts/data_Transformation/train/y_train.csv
+      - artifacts/data_Transformation/test/transform_test_file.csv
+      - artifacts/data_Transformation/transformer.pkl
+    outs:
+      - artifacts/Model_Evaluation/experiment_info.json

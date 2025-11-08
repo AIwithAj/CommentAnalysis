@@ -4,7 +4,7 @@ from src.CommentAnalysis.components.data_evaluation import Evaluation
 from src.CommentAnalysis.config.configuration import ConfigurationManager
 
 
-STAGE_NAME = "Data Model Evaluatin stage"
+STAGE_NAME = "Data Model Evaluation stage"
 
 
 class ModelEvaluationPipeline:

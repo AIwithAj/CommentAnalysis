@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./CommentAnaysisExtension/backend
+      dockerfile: Dockerfile
+    container_name: comment-analysis-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - FLASK_ENV=development
+    env_file:
+      - ./CommentAnaysisExtension/backend/.env
+    volumes:
+      - ./CommentAnaysisExtension/backend:/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - comment-analysis-network
+
+networks:
+  comment-analysis-network:
+    driver: bridge
+
