@@ -1,80 +1,42 @@
-# Multi-stage build for production-ready Docker image
-# Stage 1: Builder
-FROM python:3.9-slim as builder
+# ============================================================
+# Stage 1: Base Image (Slim + Build Essentials)
+# ============================================================
+FROM python:3.10-slim AS base
 
-# Set working directory
+
+# Working directory
 WORKDIR /app
 
-# Install build dependencies
+# System dependencies (lightgbm + nltk need these)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    g++ \
+    build-essential \
+    libgomp1 \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
+# ============================================================
+# Stage 2: Install Python dependencies
+# ============================================================
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir --user -r requirements.txt
 
-# Stage 2: Runtime
-FROM python:3.9-slim
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Create non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+# Download essential NLTK data
+RUN python -m nltk.downloader stopwords wordnet
 
-# Set working directory
-WORKDIR /app
+# ============================================================
+# Stage 3: Copy app and expose port
+# ============================================================
+COPY app.py /app/
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PORT=8000 \
-    PATH=/home/appuser/.local/bin:$PATH \
-    PYTHONPATH=/app
-
-# Install runtime dependencies only
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy Python packages from builder
-COPY --from=builder /root/.local /home/appuser/.local
-
-# Download NLTK data (done as root, then chown)
-RUN python -c "import nltk; nltk.download('stopwords', quiet=True); nltk.download('wordnet', quiet=True); nltk.download('punkt', quiet=True)" && \
-    chown -R appuser:appuser /root/nltk_data 2>/dev/null || true
-
-# Copy application code
-COPY --chown=appuser:appuser app.py config.py ./
-
-# Create necessary directories
-RUN mkdir -p /app/logs && \
-    chown -R appuser:appuser /app
-
-# Switch to non-root user
-USER appuser
-
-# Expose port
+# Expose Flask/Gunicorn port
 EXPOSE 8000
 
-# Health check with proper timeout
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health || exit 1
+# Default environment variables (can override in CI/CD)
 
-# Run the application with gunicorn for production
-# Using recommended settings for production
-CMD ["gunicorn", \
-     "--bind", "0.0.0.0:8000", \
-     "--workers", "4", \
-     "--worker-class", "sync", \
-     "--worker-connections", "1000", \
-     "--timeout", "120", \
-     "--keep-alive", "5", \
-     "--max-requests", "1000", \
-     "--max-requests-jitter", "100", \
-     "--access-logfile", "-", \
-     "--error-logfile", "-", \
-     "--log-level", "info", \
-     "--capture-output", \
-     "app:app"]
-
+# ============================================================
+# Stage 4: Production Command
+# ============================================================
+# Use Gunicorn for production server
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120", "app:app"]
