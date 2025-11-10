@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Sentiment Analysis Pro",
+  "version": "2.0.0",
+  "description": "Advanced YouTube comment sentiment analysis with stunning dashboard and real-time analytics.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "YouTube Sentiment Analysis Pro"
+  },
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.googleapis.com/*",
+    "http://localhost/*",
+    "https://*.amazonaws.com/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

@@ -1,0 +1,1 @@
+(function(){try{const o=new URLSearchParams(location.search).get("url");o&&(window.__LAUNCH_VIDEO_URL__=o,console.log("[popup] Auto-launch with URL:",o))}catch(a){console.warn("Failed to parse ?url=",a)}})();
